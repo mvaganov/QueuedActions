@@ -2,6 +2,9 @@
 
 namespace QueuedActions {
 	public class Program {
+		public static long current_milli_time() {
+			return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		}
 		public static void Print(string message, int row = -1, int col = 0) {
 			if (row >= 0 && col >= 0) {
 				Console.SetCursorPosition(col, row);
@@ -9,21 +12,23 @@ namespace QueuedActions {
 			Console.Write(message);
 		}
 		static void Main(string[] args) {
-			ActionManager q = new ActionManager();
-			KeyInput keyInput = new KeyInput();
+			action_manager q = new action_manager();
+			key_input keyInput = new key_input();
 			bool running = true;
-			long now = Environment.TickCount;
+			long now = current_milli_time();
 			long then, soon;
-			long deadmanSwitchStarted = Environment.TickCount;
+			long deadmanSwitchStarted = current_milli_time();
+			int messageIndex = 0;
+			string message = "This is a message";
 
-			bool HasKeyPress() {
-				if (keyInput.Count > 0) { Print("Got em!", 20); return true; }
+			bool HasKeyPress(action_entry_record record) {
+				if (keyInput.count() > 0) { Print("Got em!", 20); return true; }
 				return false;
 			}
-			bool ProgramTimeout() => Environment.TickCount > deadmanSwitchStarted + 5000;
-			bool EscapePressCheck() {
-				Print("waiting for esc..." + Environment.TickCount, 21);
-				if (keyInput.HasKey((char)27)) {
+			bool ProgramTimeout(action_entry_record record) => current_milli_time() > deadmanSwitchStarted + 5000;
+			bool EscapePressCheck(action_entry_record record) {
+				Print("esc to quit...", 21);
+				if (keyInput.has_key((char)27)) {
 					Print("DONE                        ", 22);
 					running = false;
 					return true;
@@ -31,45 +36,56 @@ namespace QueuedActions {
 				return false;
 			}
 			void RestartThisAction() {
-				q.ResetAllActions();
+				q.reset_all_actions();
 			}
 
-			q.Add(new ActionEntry {
-				ID = "Quit On Escape",
-				WhatToDo = () => { Print("\npress escape to quit", 22); },
-				States = new ActionState[] { new ActionState("escapeKey", EscapePressCheck), }, LayerMask = 1
+			action_entry wait2SecondsWithMessage = new action_entry {
+				id = "wait", wait_time = 2,
+				what_to_do = () => { Print("\nwaiting             ", 20); }
+			};
+			action_entry fastWait = new action_entry { id = "wait", wait_time = 0.125f };
+			action_entry printMessageLetterAndIncrement = new action_entry {
+				id = "printMessage", what_to_do = () => {
+					Print(message[messageIndex].ToString(), 19, messageIndex++);
+				}
+			};
+			q.append(new action_entry {
+				id = "Quit On Escape",
+				what_to_do = () => { Print("\npress escape to quit", 22); },
+				conditionals = new action_entry_conditional[] { new action_entry_conditional("escapeKey", EscapePressCheck), }, blocking_layer_mask = 1
 			});
-			q.Add(new ActionEntry {
-				ID = "wait", WaitTime = 3,
-				WhatToDo = () => { Console.WriteLine("\nwaiting             "); }
-			});
-			q.Add(new ActionEntry {
-				ID = "Wait for key press", WaitTime = 0.5f,
-				WhatToDo = () => {
-					Console.WriteLine("\npress key to continue (you have 5 seconds)");
-					deadmanSwitchStarted = Environment.TickCount;
+			q.append(wait2SecondsWithMessage);
+			for (int i = 0; i < message.Length; i++) {
+				q.append(printMessageLetterAndIncrement);
+				q.append(fastWait);
+			}
+			q.append(new action_entry {
+				id = "Wait for key press",
+				what_to_do = () => {
+					Print("press key to continue (you have 5 seconds)", 23);
+					deadmanSwitchStarted = current_milli_time();
 				},
-				States = new ActionState[]{
-					new ActionState("timeout", ProgramTimeout, () => running = false),
-					new ActionState("success", HasKeyPress),
+				conditionals = new action_entry_conditional[] {
+					new action_entry_conditional("timeout", ProgramTimeout, (r) => running = false),
+					new action_entry_conditional("success", HasKeyPress, (r) => Print("                                          ", 23)),
 				}
 			});
 			bool paused = false;
-			keyInput.BindKey(' ', () => paused = !paused);
-			keyInput.BindKey('\b', RestartThisAction);
+			keyInput.bind_key(' ', () => paused = !paused);
+			keyInput.bind_key('\b', RestartThisAction);
 			while (running) {
-				keyInput.Update();
+				keyInput.update();
 				then = now;
-				now = Environment.TickCount;
+				now = current_milli_time();
 				float deltaTime = (now - then) / 1000f;
 				if (!paused) {
-					q.Update(deltaTime);
+					q.update(deltaTime);
 				}
 				Console.SetCursorPosition(0, 0);
-				q.PrintStuff();
-				Console.WriteLine($"{q.WaitTime:0.00} {deltaTime:0.00}          \n");
+				q.print_stuff();
+				Console.WriteLine($"{q.wait_time():0.00} {deltaTime:0.00}          \n");
 				soon = now + 10;
-				while (Environment.TickCount < soon && keyInput.Count == 0) {
+				while (current_milli_time() < soon && keyInput.count() == 0) {
 					System.Threading.Thread.Sleep(1);
 				}
 			}
