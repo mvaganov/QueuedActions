@@ -22,14 +22,14 @@ namespace QueuedActions {
 			string message = "This is a message";
 
 			bool HasKeyPress(action_entry_record record) {
-				if (keyInput.count() > 0) { Print("Got em!", 20); return true; }
+				if (keyInput.count() > 0) { Print("Got em!\n", 20); return true; }
 				return false;
 			}
 			bool ProgramTimeout(action_entry_record record) => current_milli_time() > deadmanSwitchStarted + 5000;
 			bool EscapePressCheck(action_entry_record record) {
-				Print("esc to quit...", 21);
+				//Print(".");
 				if (keyInput.has_key((char)27)) {
-					Print("DONE                        ", 22);
+					Print("DONE\n", 22);
 					running = false;
 					return true;
 				}
@@ -41,17 +41,19 @@ namespace QueuedActions {
 
 			action_entry wait2SecondsWithMessage = new action_entry {
 				id = "wait", wait_time = 2,
-				what_to_do = () => { Print("\nwaiting             ", 20); }
+				what_to_do = () => { Print("waiting\n", 20); }
 			};
 			action_entry fastWait = new action_entry { id = "wait", wait_time = 0.125f };
 			action_entry printMessageLetterAndIncrement = new action_entry {
 				id = "printMessage", what_to_do = () => {
+					Console.ForegroundColor = ConsoleColor.Green;
 					Print(message[messageIndex].ToString(), 19, messageIndex++);
-				}
+					Console.ForegroundColor= ConsoleColor.Gray;
+				}, on_reset = (r) => { messageIndex = 0; }
 			};
 			q.append(new action_entry {
 				id = "Quit On Escape",
-				what_to_do = () => { Print("\npress escape to quit", 22); },
+				what_to_do = () => { Print("press escape to quit\n", 22); },
 				conditionals = new action_entry_conditional[] { new action_entry_conditional("escapeKey", EscapePressCheck), }, blocking_layer_mask = 1
 			});
 			q.append(wait2SecondsWithMessage);
@@ -60,18 +62,18 @@ namespace QueuedActions {
 				q.append(fastWait);
 			}
 			q.append(new action_entry {
-				id = "Wait for key press",
+				id = "Wait for key press before quit",
 				what_to_do = () => {
-					Print("press key to continue (you have 5 seconds)", 23);
+					Print("press key to continue (you have 5 seconds)\n", 23);
 					deadmanSwitchStarted = current_milli_time();
 				},
 				conditionals = new action_entry_conditional[] {
 					new action_entry_conditional("timeout", ProgramTimeout, (r) => running = false),
-					new action_entry_conditional("success", HasKeyPress, (r) => Print("                                          ", 23)),
+					new action_entry_conditional("success", HasKeyPress, (r) => Print("(success)\n", 23)),
 				}
 			});
 			bool paused = false;
-			keyInput.bind_key(' ', () => paused = !paused);
+			//keyInput.bind_key(' ', () => paused = !paused);
 			keyInput.bind_key('\b', RestartThisAction);
 			while (running) {
 				keyInput.update();
@@ -79,12 +81,17 @@ namespace QueuedActions {
 				now = current_milli_time();
 				float deltaTime = (now - then) / 1000f;
 				if (!paused) {
-					q.update(deltaTime);
+					if (q.update(deltaTime)) {
+						Print("", 0, 0);
+						q.print_stuff();
+					}
+					if (q.wait_time() > 0) {
+						Print("", 10, 0);
+						Console.WriteLine($"{q.wait_time():0.00} {deltaTime:0.00}");
+					}
 				}
-				Console.SetCursorPosition(0, 0);
-				q.print_stuff();
-				Console.WriteLine($"{q.wait_time():0.00} {deltaTime:0.00}          \n");
-				soon = now + 10;
+				//Console.SetCursorPosition(0, 0);
+				soon = now + 100;
 				while (current_milli_time() < soon && keyInput.count() == 0) {
 					System.Threading.Thread.Sleep(1);
 				}
