@@ -2,7 +2,7 @@
 using System.Collections;
 
 namespace QueuedActions {
-  // style looks like python because this needs to be converted into python
+/*C#*/// style looks like python because this needs to be converted into python
   public class action_entry_state {
     /*C#*/public bool started;
     /*C#*/public bool finished;

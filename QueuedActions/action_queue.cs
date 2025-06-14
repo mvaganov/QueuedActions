@@ -4,30 +4,37 @@ using System.Collections.Generic;
 
 namespace QueuedActions {
   public class action_queue {
-    private static int len(IList list) {
-      return list.Count; // not needed in python
-    }
+    /*C#*/private static int len(IList list) {
+    /*C#*/  return list.Count; // not needed in python
+    /*C#*/}
     private static void _remove_at(IList list, int index) {
-      list.RemoveAt(index); // del list[index]
+      /*C#*/list.RemoveAt(index);
+      //py del list[index]
     }
     private static void _append(IList list, object item) {
-      list.Add(item); // list.append(item)
+      /*C#*/list.Add(item);
+      //py list.append(item)
     }
     private static void _insert_at(IList list, int index, object item) {
-      list.Insert(index, item); // list.insert(index, item)
+      /*C#*/list.Insert(index, item);
+      //py list.insert(index, item)
     }
-    public List<action_entry_record> list = new List<action_entry_record>();
-    public int index;
-    public float wait_time;
-    public action_entry_record current;
+    /*C#*/public List<action_entry_record> list = new List<action_entry_record>();
+    /*C#*/public int index;
+    /*C#*/public float wait_time;
+    /*C#*/public action_entry_record current;
+    //py def __init__(this):
+    //py     this.list = []
+    //py     this.index = 0
+    //py     this.wait_time = 0
     public int count(/*this*/) {
       return len(this.list);
     }
     public action_entry_record get_record(/*this,*/int index) {
-      return this.list[this.index];
+      return this.list[index];
     }
-    public void set_record(/*this,*/action_entry_record value) {
-      this.list[this.index] = value;
+    public void set_record(/*this,*/int index, action_entry_record value) {
+      this.list[index] = value;
     }
     public void reset_current_action(/*this*/) {
       if (this.current != null) {
@@ -52,7 +59,7 @@ namespace QueuedActions {
         }
         if (i <= this.index + 3) {
           s += (this.list[i].entry.id);
-        }else {
+        } else {
           s += this.first_letters(this.list[i].entry.id, 2);
         }
       }
@@ -169,12 +176,12 @@ namespace QueuedActions {
       int maxLayer = -1;
       for (int i = 0; i < 8; i++) {
         if ((entry.blocking_layer_mask & (1 << i)) != 0) {
-          _append(layersToAddTo, i);
+          action_queue._append(layersToAddTo, i);
           maxLayer = i;
         }
       }
       while (len(layers) <= maxLayer) {
-        _append(layers, null);
+        action_queue._append(layers, null);
       }
       for (int i = 0; i < len(layers); i++) {
         if (entry.is_layer(i)) {

@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+//py from action_entry import *
+//py from action_queue import *
 
 namespace QueuedActions {
   public class action_manager {
-    private static int len(IList list) => list.Count;
-    /// <summary>
-    /// processes to queue up
-    /// </summary>
-    public action_queue queue = new action_queue();
-    /// <summary>
-    /// parallel tasks to accomplish
-    /// </summary>
-    public List<action_queue> active_layers = new List<action_queue>();
+    /*C#*/private static int len(IList list) => list.Count;
+    /*C#*/public action_queue queue = new action_queue();
+    /*C#*/public List<action_queue> active_layers = new List<action_queue>();
+    //py def __init__(this):
+    //py     this.queue = action_queue()
+    //py     this.active_layers = []
     public float wait_time(/*this*/) {
       return this.queue.wait_time;
     }
@@ -49,11 +48,15 @@ namespace QueuedActions {
       this.queue.insert_next(entry);
     }
     public void print_stuff(/*this*/) {
-      Console.WriteLine($"(main) {this.queue}                                    ");
-      for (int layer = 0; layer < len(this.active_layers); ++layer) {
-        action_queue processLayer = this.active_layers[layer];
-        Console.WriteLine($"({layer}) {processLayer}                                       ");
+      /*C#*/Console.WriteLine($"(main) {this.queue}                                   ");
+      //py print(f"(main) {this.queue}                                                ");
+      for (int i = 0; i < len(this.active_layers); i++) {
+        action_queue layer = this.active_layers[i];
+        /*C#*/Console.WriteLine($"({i}) {layer}                                       ");
+        //py print(f"({i}) {layer}                                                    ");
       }
+      /*C#*/Console.WriteLine("                                                       ");
+      //py print("                                                                    ");
     }
   }
 }
