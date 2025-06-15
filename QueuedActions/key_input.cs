@@ -5,8 +5,8 @@ namespace QueuedActions {
   public class key_input {
     public static key_input key_input_instance;
     public List<char> keys = new List<char>();
-    public Dictionary<char, List<Action>> key_binding = new Dictionary<char, List<Action>>();
-    private List<List<Action>> to_execute_this_frame = new List<List<Action>>();
+    public Dictionary<char, List<Action<object>>> key_binding = new Dictionary<char, List<Action<object>>>();
+    private List<List<Action<object>>> to_execute_this_frame = new List<List<Action<object>>>();
     public key_input() {
       if (key_input_instance == null) {
         key_input_instance = this;
@@ -30,11 +30,11 @@ namespace QueuedActions {
       while (Console.KeyAvailable) {
         ConsoleKeyInfo key = Console.ReadKey();
         this.keys.Add(key.KeyChar);
-        if (this.key_binding.TryGetValue(key.KeyChar, out List<Action> actions)) {
+        if (this.key_binding.TryGetValue(key.KeyChar, out List<Action<object>> actions)) {
           this.to_execute_this_frame.Add(actions);
         }
       }
-      this.to_execute_this_frame.ForEach(actions => actions.ForEach(a => a.Invoke()));
+      this.to_execute_this_frame.ForEach(actions => actions.ForEach(a => a.Invoke(this)));
       this.to_execute_this_frame.Clear();
     }
     public bool has_key(/*this,*/char keyChar) {
@@ -48,9 +48,9 @@ namespace QueuedActions {
       }
       return -1;
     }
-    public List<Action> bind_key(/*this,*/char key, Action action) {
-      if (!this.key_binding.TryGetValue(key, out List<Action> actions)) {
-        actions = new List<Action>();
+    public List<Action<object>> bind_key(/*this,*/char key, Action<object> action) {
+      if (!this.key_binding.TryGetValue(key, out List<Action<object>> actions)) {
+        actions = new List<Action<object>>();
         this.key_binding[key] = actions;
       }
       actions.Add(action);
@@ -59,9 +59,9 @@ namespace QueuedActions {
     /// <param name="key"></param>
     /// <param name="action">if null, removes all actions bound to this key</param>
     /// <returns></returns>
-    public int unbind(/*this,*/char key, Action action) {
+    public int unbind(/*this,*/char key, Action<object> action) {
       int removedCount = 0;
-      if (!this.key_binding.TryGetValue(key, out List<Action> actions)) {
+      if (!this.key_binding.TryGetValue(key, out List<Action<object>> actions)) {
         return removedCount;
       }
       int i = actions.Count - 1;

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 //py from action_entry import *
 
@@ -6,6 +7,12 @@ namespace QueuedActions {
   public class action_queue {
     /*C#*/private static int len(IList list) {
     /*C#*/  return list.Count; // not needed in python
+    /*C#*/}
+    /*C#*/private static int len(string list) {
+    /*C#*/  return list.Length; // not needed in python
+    /*C#*/}
+    /*C#*/private static string str(object o) {
+    /*C#*/  return o.ToString(); // not needed in python
     /*C#*/}
     private static void _remove_at(IList list, int index) {
       /*C#*/list.RemoveAt(index);
@@ -27,6 +34,7 @@ namespace QueuedActions {
     //py     this.list = []
     //py     this.index = 0
     //py     this.wait_time = 0
+    //py     this.current = None
     public int count(/*this*/) {
       return len(this.list);
     }
@@ -48,27 +56,52 @@ namespace QueuedActions {
       this.index = 0;
     }
     public override string ToString(/*this*/) {
-      string s = "@" + (this.index);
-      if (this.index >= this.count()) {
-        return s;
-      }
-      s += " [";
-      for (int i = this.index; i < this.count(); i++) {
-        if (i > this.index) {
-          s += "], [";
+      string s = "@" + str(this.index);
+      //if (this.index >= this.count()) {
+      //  return s;
+      //}
+      s += " ";
+      int startingIndex = 0;
+      for (int i = startingIndex; i < this.count(); i++) {
+        if (i > startingIndex) {
+          s += " ";
         }
-        if (i <= this.index + 3) {
+        //if (i == this.index) {
+        //  s += "[";
+        //}
+        if (i == this.index) {
+          s += ">";
           s += (this.list[i].entry.id);
+          //s += action_queue.first_letters(this.list[i].entry.id, 6);
         } else {
-          s += this.first_letters(this.list[i].entry.id, 2);
+          s += this.AnnotateRecordTag(this.list[i]);
+          s += (this.list[i].entry.id);
+          //s += action_queue.first_letters(this.list[i].entry.id, 8);
         }
+        //if (i == this.index) {
+        //  s += "]";
+        //}
       }
-      s += "]";
+      s += "";
       return s;
     }
-    public string first_letters(string str, int letterCount) {
-      if (str.Length >= letterCount) {
-        return str.Substring(0, letterCount);
+    private string AnnotateRecordTag(/*this,*/action_entry_record record) {
+      int bitmask = record.state.finishConditionBitMask;
+      if (bitmask == -1) {
+        return ".";
+      } else if (bitmask == 0) {
+        return "-";
+      } else if (bitmask == 1) {
+        return "!";
+      } else if (bitmask == 2) {
+        return "X";
+      }
+      return "?";
+    }
+    public static string first_letters(string str, int letterCount) {
+      if (len(str) > letterCount) {
+        /*C#*/return str.Substring(0, letterCount);
+        //py return str[0:letterCount]
       } else {
         return str;
       }
@@ -77,7 +110,7 @@ namespace QueuedActions {
       action_queue._append(this.list, new action_entry_record(entry));
     }
     public void remove_at(/*this,*/int index) {
-      action_queue._remove_at(this.list, this.index);
+      action_queue._remove_at(this.list, index);
     }
 
     public void insert_next(/*this,*/action_entry entry) {

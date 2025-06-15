@@ -5,6 +5,7 @@ using System.Collections.Generic;
 //py from action_queue import *
 
 namespace QueuedActions {
+  // Remy
   public class action_manager {
     /*C#*/private static int len(IList list) => list.Count;
     /*C#*/public action_queue queue = new action_queue();
@@ -47,16 +48,15 @@ namespace QueuedActions {
     public void insert_next(/*this,*/action_entry entry) {
       this.queue.insert_next(entry);
     }
-    public void print_stuff(/*this*/) {
-      /*C#*/Console.WriteLine($"(main) {this.queue}                                   ");
-      //py print(f"(main) {this.queue}                                                ");
+    public string print_stuff(/*this*/) {
+      string output = "";
+      output += $"(main) {this.queue}            \n";
       for (int i = 0; i < len(this.active_layers); i++) {
         action_queue layer = this.active_layers[i];
-        /*C#*/Console.WriteLine($"({i}) {layer}                                       ");
-        //py print(f"({i}) {layer}                                                    ");
+        output += ($"({i}) {layer}               \n");
       }
-      /*C#*/Console.WriteLine("                                                       ");
-      //py print("                                                                    ");
+      output += "                                                       ";
+      return output;
     }
   }
 }
