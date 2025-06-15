@@ -20,6 +20,10 @@ namespace QueuedActions {
       this.queue.reset_all_actions();
       this.active_layers.Clear();
     }
+    public void go_back_to_previous_process(/*this*/) {
+      queue.go_back_to_previous_process();
+    }
+
     public void reset_current_main_action(/*this*/) {
       this.queue.current.reset();
       for (int i = 0; i < len(this.active_layers); i++) {

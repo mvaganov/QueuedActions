@@ -46,8 +46,8 @@ namespace QueuedActions {
             //py print(f"{Fore.LIGHTBLACK_EX}{Back.BLACK}")
             coloredToken = true;
           } else if (c == '.') {
-            /*#*/Console.ForegroundColor = ConsoleColor.DarkGreen; Console.BackgroundColor = ConsoleColor.Black;
-            //py print(f"{Fore.GREEN}{Back.BLACK}")
+            /*#*/Console.ForegroundColor = ConsoleColor.DarkCyan; Console.BackgroundColor = ConsoleColor.Black;
+            //py print(f"{Fore.YELLOW}{Back.CYAN}")
             coloredToken = true;
           } else if (c == '!') {
             /*#*/Console.ForegroundColor = ConsoleColor.Green; Console.BackgroundColor = ConsoleColor.Black;
@@ -104,7 +104,12 @@ namespace QueuedActions {
         //py trigger = keyInput.has_key('esc');
         return trigger;
       }
-      void RestartThisAction(object context) {
+      void RestartPreviousAction(object context) {
+        q.go_back_to_previous_process();
+        q.reset_current_main_action();
+        TogglePause(context);
+      }
+      void RestartAllActions(object context) {
         q.reset_all_actions();
       }
       void PrintWaiting(object context) {
@@ -171,7 +176,8 @@ namespace QueuedActions {
       q.append(waitForKeyPressBeforeQuit);
 
       keyInput.bind_key('p', TogglePause);
-      keyInput.bind_key('r', RestartThisAction);
+      keyInput.bind_key('e', RestartPreviousAction);
+      keyInput.bind_key('r', RestartAllActions);
       while (running) {
         keyInput.update();
         then = now;

@@ -129,10 +129,19 @@ namespace QueuedActions {
       }
       return changeHappened;
     }
+    public void go_back_to_previous_process(/*this*/) {
+      if (this.index >= 1) {
+        if (this.current != null && this.current.entry.on_reset != null) {
+          this.current.entry.on_reset(this.current);
+        }
+        this.index -= 1;
+        this.ensure_current_process();
+      }
+    }
     private void ensure_current_process(/*this*/) {
       if (this.index >= this.count()) {
         this.current = null;
-      } else if (this.current == null && this.index < this.count()) {
+      } else if (this.index < this.count()) {
         this.current = this.list[this.index];
       }
     }
